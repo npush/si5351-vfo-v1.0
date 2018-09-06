@@ -1,11 +1,4 @@
-# Makefile for AVR C++ projects
-# From: https://gist.github.com/rynr/72734da4b8c7b962aa65
-
-# ----- Update the settings of your project here -----
-
-# Hardware
 MCU     = atmega328p # see `make show-mcu`
-AR_CPU = __AVR_ATmega328__
 OSC     = 16000000UL
 PROJECT = si5351-vfo
 BUILDDIR = build
@@ -16,6 +9,8 @@ BUILDDIR = build
 GCC     = avr-gcc
 G++     = avr-g++
 SIZE	= avr-size
+OBJCOPY = avr-objcopy
+OBJDUMP = avr-objdump
 RM      = rm -f
 AVRDUDE = avrdude
 
@@ -33,6 +28,8 @@ INCLUDES =  \
 		-Iarduino/lib \
 		-Iarduino/lib/Wire \
 		-Iarduino/lib/Wire/utility \
+		-Iarduino/lib/LC \
+		-Iarduino/lib/EEPROM
 
 C_SOURCES = 		$(shell find -L $(SOURCEDIR) -name '*.c')
 CPP_SOURCES =	$(shell find -L $(SOURCEDIR) -name '*.cpp')
@@ -97,6 +94,15 @@ $(BUILDDIR)/%.o : %.$(EXT_ASM)
 
 clean:
 	$(RM) $(BUILDDIR)/$(PROJECT).elf $(BUILDDIR)/$(OBJECTS)
+
+size:
+	$(SIZE) $(BUILDDIR)/$(PROJECT).elf
+
+
+hex: $(BUILDDIR)/$(PROJECT).elf
+	rm -f $(BUILDDIR)/$(PROJECT).hex
+	$(OBJCOPY) -j .text -j .data -O ihex $(BUILDDIR)/$(PROJECT).elf $(BUILDDIR)/$(PROJECT).hex
+	$(SIZE) $(BUILDDIR)/$(PROJECT).elf
 
 help:
 	@echo "usage:"
