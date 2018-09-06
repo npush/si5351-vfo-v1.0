@@ -60,6 +60,7 @@
  * than 10 lines of logic.
  */
 
+#include "Arduino.h"
 #include "rotary.h"
 
 /*
@@ -127,11 +128,11 @@ Rotary::Rotary(char _pin1, char _pin2) {
   pin1 = _pin1;
   pin2 = _pin2;
   // Set pins to input.
-  //pinMode(pin1, INPUT);
-  //pinMode(pin2, INPUT);
+  pinMode(pin1, INPUT);
+  pinMode(pin2, INPUT);
 #ifdef ENABLE_PULLUPS
-  //digitalWrite(pin1, HIGH);
-  //digitalWrite(pin2, HIGH);
+  digitalWrite(pin1, HIGH);
+  digitalWrite(pin2, HIGH);
 #endif
   // Initialise state.
   state = R_START;
@@ -139,7 +140,7 @@ Rotary::Rotary(char _pin1, char _pin2) {
 
 unsigned char Rotary::process() {
   // Grab state of input pins.
-  unsigned char pinstate = 1;//(digitalRead(pin2) << 1) | digitalRead(pin1);
+  unsigned char pinstate = (digitalRead(pin2) << 1) | digitalRead(pin1);
   // Determine new state from the pins and state table.
   state = ttable[state & 0xf][pinstate];
   // Return emit bits, ie the generated event.

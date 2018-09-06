@@ -5,69 +5,98 @@
 
 # Hardware
 MCU     = atmega328p # see `make show-mcu`
+AR_CPU = __AVR_ATmega328__
 OSC     = 16000000UL
-PROJECT = example
+PROJECT = si5351-vfo
+BUILDDIR = build
 
 # ----- These configurations are quite likely not to be changed -----
 
 # Binaries
 GCC     = avr-gcc
 G++     = avr-g++
+SIZE	= avr-size
 RM      = rm -f
 AVRDUDE = avrdude
 
 # Files
 EXT_C   = c
 EXT_C++ = cpp
-EXT_ASM = asm
+EXT_ASM = S
 
 # ----- No changes should be necessary below this line -----
 
-OBJECTS = \
-	$(patsubst %.$(EXT_C),%.o,$(wildcard *.$(EXT_C))) \
-	$(patsubst %.$(EXT_C++),%.o,$(wildcard *.$(EXT_C++))) \
-	$(patsubst %.$(EXT_ASM),%.o,$(wildcard *.$(EXT_ASM)))
+SOURCEDIR = 
+
+INCLUDES =  \
+		-Iarduino \
+		-Iarduino/lib \
+		-Iarduino/lib/Wire \
+		-Iarduino/lib/Wire/utility \
+
+C_SOURCES = 		$(shell find -L $(SOURCEDIR) -name '*.c')
+CPP_SOURCES =	$(shell find -L $(SOURCEDIR) -name '*.cpp')
+ASM_SOURCES =	$(shell find -L $(SOURCEDIR) -name '*.S')
+
+
+OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(C_SOURCES))))
+OBJECTS += $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(CPP_SOURCES))))
+OBJECTS += $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(ASM_SOURCES))))
+
+#OBJECTS = \
+#	$(patsubst %.$(EXT_C),%.o,$(wildcard *.$(EXT_C))) \
+#	$(patsubst %.$(EXT_C++),%.o,$(wildcard *.$(EXT_C++))) \
+#	$(patsubst %.$(EXT_ASM),%.o,$(wildcard *.$(EXT_ASM)))
 
 # TODO explain these flags, make them configurable
-CFLAGS = $(INC)
-CFLAGS += -Os
-CFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
-CFLAGS += -Wall -Wstrict-prototypes
-CFLAGS += -DF_OSC=$(OSC)
+CFLAGS = $(INCLUDES)
+CFLAGS += -Os -w -ffunction-sections -fdata-sections
+CFLAGS += -MMD
+CFLAGS +=-DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR
+CFLAGS += -DF_CPU=$(OSC)
 CFLAGS += -mmcu=$(MCU)
 
-C++FLAGS = $(INC)
-C++FLAGS += -Os
-C++FLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums -std=c++11 -lstdc++
-C++FLAGS += -Wall
-C++FLAGS += -DF_OSC=$(OSC)
+C++FLAGS = $(INCLUDES)
+C++FLAGS += -Os -w  -ffunction-sections -fdata-sections
+C++FLAGS += -fno-exceptions -fno-threadsafe-statics
+C++FLAGS += -MMD
+C++FLAGS += -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR
+C++FLAGS += -DF_CPU=$(OSC)
 C++FLAGS += -mmcu=$(MCU)
 
-ASMFLAGS = $(INC)
+ASMFLAGS = $(INCLUDES)
 ASMFLAGS += -Os
-ASMFLAGS += -funsigned-char -funsigned-bitfields -fpack-struct -fshort-enums
 ASMFLAGS += -Wall -Wstrict-prototypes
-ASMFLAGS += -DF_OSC=$(OSC)
-ASMFLAGS += -x assembler-with-cpp
+ASMFLAGS += -DF_CPU=$(OSC)
 ASMFLAGS += -mmcu=$(MCU)
+ASMFLAGS += -x assembler-with-cpp
+ASMFLAGS += -flto -MMD -DARDUINO_AVR_NANO -DARDUINO_ARCH_AVR
 
-default: $(PROJECT).elf
-	echo $(OBJECTS)
+LDFLAGS += -mmcu=$(MCU) -Wl,--gc-sections
+LDFLAGS += -w -Os -lm
 
-%.elf: $(OBJECTS)
-	$(GCC) $(CFLAGS) $(OBJECTS) --output $@ $(LDFLAGS)
+default: $(BUILDDIR)/$(PROJECT).elf
 
-%.o : %.$(EXT_C)
+
+$(BUILDDIR)/$(PROJECT).elf: $(OBJECTS)
+	$(GCC) $(LDFLAGS) -o $@ $(OBJECTS)
+	 #$^ $(LDLIBS) -o $@
+
+
+$(BUILDDIR)/%.o : %.$(EXT_C)
+	mkdir -p $(dir $@)
 	$(GCC) $< $(CFLAGS) -c -o $@
 
-%.o : %.$(EXT_C++)
+$(BUILDDIR)/%.o : %.$(EXT_C++)
+	mkdir -p $(dir $@)
 	$(G++) $< $(C++FLAGS) -c -o $@
 
-%.o : %.$(EXT_ASM)
-	$(G++) $< $(ASMFLAGS) -c -o $@
+$(BUILDDIR)/%.o : %.$(EXT_ASM)
+	mkdir -p $(dir $@)
+	$(GCC) $< $(ASMFLAGS) -c -o $@
 
 clean:
-	$(RM) $(PROJECT).elf $(OBJECTS)
+	$(RM) $(BUILDDIR)/$(PROJECT).elf $(BUILDDIR)/$(OBJECTS)
 
 help:
 	@echo "usage:"
@@ -99,3 +128,8 @@ config:
 
 show-mcu:
 	$(G++) --help=target
+
+deb:
+#	@echo $(INCLUDES)
+#	@echo $(SOURCES)
+	@echo $(OBJECTS)
