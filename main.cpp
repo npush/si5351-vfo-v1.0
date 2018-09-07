@@ -1,3 +1,4 @@
+#include <Arduino_FreeRTOS.h>
 #include <LiquidCrystal.h>
 #include "rotary.h"
 #include <EEPROM.h>
@@ -11,6 +12,9 @@ Rotary r = Rotary(ENCODER_A, ENCODER_B);
 Si5351 si5351;
 // Установка дисплея
 LiquidCrystal lcd(9, 8, 7, 6, 5, 4); // I used an odd pin combination because I need pin 2 and 3 for the interrupts.
+
+// Task
+void TaskBlink( void *pvParameters );
 
 volatile uint32_t vfo_round=0; 
 volatile uint32_t vfo2=1; // variable to hold the updated frequency
@@ -181,6 +185,17 @@ void LCD_Step(){
 //=======================================================================
 void setup() {
 
+  // Now set up two tasks to run independently.
+  xTaskCreate(
+    TaskBlink
+    ,  (const portCHAR *)"Blink"   // A name just for humans
+    ,  128  // This stack size can be checked & adjusted by reading the Stack Highwater
+    ,  NULL
+    ,  2  // Priority, with 3 (configMAX_PRIORITIES - 1) being the highest, and 0 being the lowest.
+    ,  NULL );
+
+
+
   //Serial.begin(57600);
   lcd.begin(16, 2);       // настройуа LC
   lcd.clear();
@@ -247,6 +262,14 @@ si5351.output_enable(SI5351_CLK2, 0);
 si5351.drive_strength(SI5351_CLK0,SI5351_DRIVE_8MA); //you can set this to 2MA, 4MA, 6MA or 8MA
 }  // Конец инициализации void setup()
 
+
+void TaskBlink(void *pvParameters)  // This is a task.
+{
+  for (;;) // A Task shall never return or exit.
+  {
+  }
+
+}
 
 // ************  Главный цикл **********
 void loop() {

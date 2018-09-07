@@ -32,3 +32,6 @@
 *.app
 *.elf
 *.hex
+
+# IDE
+.vscode/*

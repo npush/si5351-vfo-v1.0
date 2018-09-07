@@ -29,7 +29,8 @@ INCLUDES =  \
 		-Iarduino/lib/Wire \
 		-Iarduino/lib/Wire/utility \
 		-Iarduino/lib/LC \
-		-Iarduino/lib/EEPROM
+		-Iarduino/lib/EEPROM \
+		-Ifreertos
 
 C_SOURCES = 		$(shell find -L $(SOURCEDIR) -name '*.c')
 CPP_SOURCES =	$(shell find -L $(SOURCEDIR) -name '*.cpp')
