@@ -21,7 +21,15 @@ EXT_ASM = S
 
 # ----- No changes should be necessary below this line -----
 
+AVRBASEPATH = ./arduino-core/avr
+STM32BASEPATH = ./arduino-core/stm32
+
+AVRCORE = $(AVRBASEPATH)/cores/arduino
+STM32CORE = $(STM32BASEPATH)/cores/arduino
+
 SOURCEDIR = 
+
+AVRLIBDIR = $(AVRBASEPATH)/library
 
 INCLUDES =  \
 		-Iarduino \
