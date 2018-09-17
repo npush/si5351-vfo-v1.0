@@ -26,23 +26,30 @@ STM32BASEPATH = ./arduino-core/stm32
 
 AVRCORE = $(AVRBASEPATH)/cores/arduino
 STM32CORE = $(STM32BASEPATH)/cores/arduino
+AVRCORE += $(AVRBASEPATH)/variants/standard
+STM32CORE = $(STM32BASEPATH)/variants/DISCO_F100RB
 
-SOURCEDIR = 
+AVRLIBDIR = $(AVRBASEPATH)/libraries
+STM32LIBDIR = $(AVRBASEPATH)/libraries
 
-AVRLIBDIR = $(AVRBASEPATH)/library
+FREERTOS = ./freertos
 
-INCLUDES =  \
-		-Iarduino \
-		-Iarduino/lib \
-		-Iarduino/lib/Wire \
-		-Iarduino/lib/Wire/utility \
-		-Iarduino/lib/LC \
-		-Iarduino/lib/EEPROM \
-		-Ifreertos
+LIBDIR = ./lib ./libraries
+INCDIRS = ./inc
+SOURCEDIR = ./src
 
-C_SOURCES = 		$(shell find -L $(SOURCEDIR) -name '*.c')
-CPP_SOURCES =	$(shell find -L $(SOURCEDIR) -name '*.cpp')
-ASM_SOURCES =	$(shell find -L $(SOURCEDIR) -name '*.S')
+SOURCEDIR += $(AVRCORE) $(AVRLIBDIR) $(FREERTOS) $(LIBDIR)
+
+INCDIRS += $(AVRCORE) $(AVRLIBDIR) $(FREERTOS) $(LIBDIR)
+# Find header directories
+SEARCH = $(shell find -L $(INCDIR) -name '*.h' -exec dirname {} \; | uniq)
+FILES = $(foreach INCDIR, $(INCDIRS), $(SEARCH))
+INCLUDES = $(FILES:%=-I%)
+
+
+C_SOURCES = $(shell find -L $(SOURCEDIR) -name '*.c')
+CPP_SOURCES = $(shell find -L $(SOURCEDIR) -name '*.cpp')
+ASM_SOURCES = $(shell find -L $(SOURCEDIR) -name '*.S')
 
 
 OBJECTS = $(addprefix $(BUILDDIR)/, $(addsuffix .o, $(basename $(C_SOURCES))))
