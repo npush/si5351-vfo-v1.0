@@ -108,6 +108,8 @@ $(BUILDDIR)/%.o : %.$(EXT_ASM)
 	mkdir -p $(dir $@)
 	$(GCC) $< $(ASMFLAGS) -c -o $@
 
+.PHONY: clean size hex help config show-mcu deb
+
 clean:
 	$(RM) $(BUILDDIR)/$(PROJECT).elf $(BUILDDIR)/$(OBJECTS)
 
